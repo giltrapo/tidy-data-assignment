@@ -77,7 +77,7 @@ Now we have two data frames with different number of rows, but the same number o
 ### 2. Extracting only the measurements on the mean and standard deviation for each measurement.
 In the *features_info.txt* file we can read the following text:
 
-> The set of variables That Were Estimated from these signals are:
+> The set of variables that were estimated from these signals are:
 
 > Mean (): Mean value  
 std (): Standard deviation  
