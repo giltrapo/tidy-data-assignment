@@ -1,84 +1,98 @@
-## Comprueba que existe la carpeta "UCI HAR Dataset" en nuestro directorio
-## de trabajo
-if(!file.exists("./UCI HAR Dataset")) {
-        message("Por favor, descarga y descomprime los datos necesarios 
-                para realizar el proyecto en tu directorio de trabajo")
-        } else {
-                message("OK, tienes los datos necesarios")
-        }
+## 1. Merging the training and the test sets to create one data set
 
-## 1. Merges the training and the test sets to create one data set
+## Step 1
+## Read X_test.txt and X_train.txt files
+testset = read.table("./UCI HAR Dataset/test/X_test.txt")
+trainset = read.table("./UCI HAR Dataset/train/X_train.txt")
+## Check dimensions
+dim(testset)
+dim(trainset)
+## Check data frame visually
+View(testset)
+View(trainset)
 
-## Leemos los ficheros subject_test.txt y subject_train.txt
+
+## Step 2
+## Read features.txt file
+varnames = read.table("./UCI HAR Dataset/features.txt", stringsAsFactors = FALSE)
+## Check dimensions
+dim(varnames)
+## Check data frame visually
+View(varnames)
+
+
+## Step 3
+## Assign names in the second column of varnames data frame
+## to columns of testset and trainset data frames
+names(testset) <- varnames[,2]
+names(trainset) <- varnames[,2]
+## Check names of testset and trainset data frames
+names(testset)
+names(trainset)
+
+
+## Step 4
+## Read subject_test.txt and subject_train.txt files
 subject_test = read.table("./UCI HAR Dataset/test/subject_test.txt")
 subject_train = read.table("./UCI HAR Dataset/train/subject_train.txt")
-## Comprobamos sus dimensiones
+## Check dimensions
 dim(subject_test)
 dim(subject_train)
-## Damos nombre a las variables
+## Add variable labels
 names(subject_test) <- "subject"
 names(subject_train) <- "subject"
 
-## Leemos los ficheros activity_test.txt y activity_train.txt
+
+## Step 5
+## Read activity_test.txt and activity_train.txt files
 activity_test = read.table("./UCI HAR Dataset/test/y_test.txt")
 activity_train = read.table("./UCI HAR Dataset/train/y_train.txt")
-## Comprobamos sus dimensiones
+## Check dimensions
 dim(activity_test)
 dim(activity_train)
-## Damos nombre a las variables
+## Add variable labels
 names(activity_test) <- "activity"
 names(activity_train) <- "activity"
 
-## Leemos los ficheros X_test.txt y X_train.txt
-features_test = read.table("./UCI HAR Dataset/test/X_test.txt")
-features_train = read.table("./UCI HAR Dataset/train/X_train.txt")
-## Comprobamos sus dimensiones
-dim(features_test)
-dim(features_train)
-## Leemos el fichero features.txt, que contiene los nombres del
-## vector de características
-varnames = read.table("./UCI HAR Dataset/features.txt", 
-                      stringsAsFactors = FALSE)
-## Comprobamos sus dimensiones
-dim(varnames)
-## Damos nombre a las variables con los valores de features.txt
-names(features_test) <- varnames[,2]
-names(features_train) <- varnames[,2]
 
-## Unimos en un mismo objeto la columna con la identificación del
-## participante, la de la actividad que estaba realizando y el
-## vector de características resultante, tanto para el grupo test
-## como para el grupo entrenamiento
-testdb = cbind(subject_test, activity_test, features_test)
-traindb = cbind(subject_train, activity_train, features_train)
+## Step 6
+## Merge, by matching rows, subject_test, activity_test and testset data frames
+testdb = cbind(subject_test, activity_test, testset)
+## Merge, by matching rows, subject_train, activity_train and trainset data frames
+traindb = cbind(subject_train, activity_train, trainset)
 
-## Unimos en un mismo objeto las filas del test y del entrenamiento,
-## atendiendo al nombre de las columnas
+
+## Step 7
+## Merge, by matching columns, testdb and traindb data frames
 totaldb = rbind(testdb, traindb)
 
 
 
-## 2. Extracts only the measurements on the mean and standard deviation
+## 2. Extracting only the measurements on the mean and standard deviation
 ## for each measurement.
 
-## Seleccionamos las variables que contienen las palabras "mean" o "std" 
+## Step 8
+## Add up variable names with "mean()" and "std()" strings 
+sum(grepl("\\<mean\\>", names(totaldb)))
+sum(grepl("\\<std\\>", names(totaldb)))
+## Select columns with labels containing "mean()" or "std()" strings 
 selectdb <- totaldb[, c("subject", "activity", 
-                    names(totaldb)[grepl("mean|std", names(totaldb))])]
-## Eliminamos las variables con el texto "menFreq" 
-selectdb <- selectdb[, !grepl("meanFreq", names(selectdb))]
+                    names(totaldb)[grepl("\\<mean\\>|\\<std\\>",
+                                         names(totaldb))])]
 
 
-
-## 3. Uses descriptive activity names to name the activities in the
+## 3. Using descriptive activity names to name the activities in the
 ## data set
 
-## Leemos el fichero activity_labels.txt para ver los códigos de cada
-## actividad
+## Step 9
+## Read activity_labels.txt file
 activity_labels = read.table("./UCI HAR Dataset/activity_labels.txt", 
                              stringsAsFactors = FALSE)
 
-## Reemplaza los valores numéricos de la variable activity por texto
-## que describe cada actividad, y convierte la variable en factor
+
+## Step 10
+## Replace activity levels in selectdb data frame with text
+## description of activity
 selectdb$activity[selectdb[,2] == activity_labels[1,1]] <- activity_labels[1,2]
 selectdb$activity[selectdb[,2] == activity_labels[2,1]] <- activity_labels[2,2]
 selectdb$activity[selectdb[,2] == activity_labels[3,1]] <- activity_labels[3,2]
@@ -86,19 +100,37 @@ selectdb$activity[selectdb[,2] == activity_labels[4,1]] <- activity_labels[4,2]
 selectdb$activity[selectdb[,2] == activity_labels[5,1]] <- activity_labels[5,2]
 selectdb$activity[selectdb[,2] == activity_labels[6,1]] <- activity_labels[6,2]
 
-## 4. Appropriately labels the data set with descriptive variable names. 
 
-## Eliminamos y/o sustituimos algunos caracteres de los nombres
+
+## 4. Appropriately labeling the data set with descriptive variable names. 
+
+## Step 11
+## Remove or replace some characters in selectdb variable names
 names(selectdb) <- gsub( "\\(|\\)" , "" , names(selectdb))
 names(selectdb) <- gsub( "\\-|\\," , "." , names(selectdb))
 
 
 
-## 5. From the data set in step 4, creates a second, independent tidy
+## 5. From the data set in step 4, creating a second, independent tidy
 ## data set with the average of each variable for each activity and
 ## each subject.
 
-## Crea un nuevo data frame con la media de cada variable para cada actividad
-## y cada sujeto
+## Step 12
+## create a two way table with activity and subject variables
+table(selectdb$activity, selectdb$subject)
+
+
+## Step 13
+## Create a new data frame with the average of each variable for each
+## activity and each subject
 tidydb <- aggregate(.~subject + activity, selectdb, mean)
-write.table( tidydb, "tidydb.txt", row.names = FALSE)
+
+
+## Step 14
+## Add ".Avg" termination to features variable names
+names(tidydb)[3:68] <- paste(names(tidydb)[3:68], ".Avg", sep = "")
+
+
+## Step 15
+## Save tidydb in a txt file
+write.table(tidydb, "tidydb.txt", row.names=FALSE)

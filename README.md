@@ -1,170 +1,184 @@
-Introducción
-=====
+# Introduction
 
-Este repositorio contiene el material y la información necesaria para replicar el proyecto del curso Getting and Cleaning Data de Coursera.
+This repository contains the material and information needed to replicate the course project "Getting and Cleaning Data" from Coursera.
 
-En él podrás encontrar los siguientes ficheros:
+You can find the following files:
 
-* "README.md": es el fichero que estás leyendo en estos momentos, y en él se ofrece información sobre los datos con los que se ha trabajado en el proyecto, se explica el proceso seguido para realizarlo y se dan las instrucciones necesarias para ejecutar el script que permite reproducir en R dicho proceso.
-* "run_analysis.R": script que permite reproducir en R los pasos seguidos para obtener y limpiar los datos, y para obtener la base de datos que se solicita en el proyecto.
-* "tidydataset.txt": base de datos con las medias, por sujeto y actividad, de las variables solicitadas en el proyecto.
-* "CodeBook.md": enumeración y descripción de las variables contenidas en el data set "tidydataset.txt".
+* *README.md*: The file you are reading right now. It contains information about the project dataset, and shows the process followed using R to clean the data set and build a new tidy data set.
+* *Run_analysis.R*: It is a script that run in R all the steps to clean up the data and build the data set required from the project.
+* *Tidydataset.txt*: Data set created with the script *run_analysis.R*.
+* *CodeBook.md*: List and description of the variables in the data set *tidydataset.txt*.
 
 
 
-Obteniendo los datos
-====
+# Data collection
 
-El script contenido en el fichero "run_analysis.R" no contempla la descarga de los datos con los que se trabajará a lo largo del proyecto, y da por supuesto que ya los tienes descargados en tu directorio de trabajo. No obstante, puedes utilizar el siguiente código para descargarlos, si no lo has hecho aun:
+The script contained in the file *run_analysis.R* take for granted that you have the UCI data set in your working directory, and does not include the code for downloading it. However, you can use the following code if you have not already done so:
 
+	fileURL <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 
-	fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
+	## Download the .zip file for Mac users
+	download.file (fileURL, destfile = "./ dataset.zip" method = "curl")
 
-	## Descarga del fichero .zip para usuarios con Mac
-	download.file(fileUrl,destfile="./dataset.zip",method="curl")
+	## Download the .zip file for Windows users. This method works correctly
+	## With R version 3.2.0 (16/04/2015) - "Full of Ingredients", and RStudio Version 0.99.442
+	download.file (fileURL, destfile = "./ dataset.zip" method = "libcurl")
 
-	## Descarga del fichero .zip para usuarios con Windows. Este método funciona correctamente
-	## con R version 3.2.0 (2015-04-16) -- "Full of Ingredients", y con RStudio Version 0.99.442 
-	download.file(fileUrl,destfile="./dataset.zip",method="libcurl")
+When you have the UCI data set in your working directory, you have to unzip the file with the following code:
 
-Una vez descargados los datos en tu directorio de trabajo, puedes descomprimir el fichero "dataset.zip"
-con el siguiente código:
+	unzip ("dataset.zip")
 
-	unzip("dataset.zip")
+You will find a folder called *UCI HAR Dataset* that have all the necessary files that you need to work with. **Important: this folder has to be in your working directory in order to run the script *Run_analysis.R*.**
 
-Y, opcionalmente, puedes eliminar el fichero "dataset.zip" con este código:
+# About the data set
 
-	file.remove("dataset.zip")
+The *UCI HAR Dataset* folder contains data of an experiment with 30 participants, between 19 and 48 years old, who performed activities (walking straight, walking upstairs and downstairs, sit down, stand and lie down) while carrying a Samsung Galaxy S II mobile attached to the waist, that collected data about the acceleration and angular velocity of the participants while performing such activities. The objective of this experiment focused on trying to predict the activity that each participant was performing from the data collected by the smartphone. For this reason they divided the data into two groups, one with 70% of the participants, which was used to train predictive models, and another one with the remaining 30%, which was used to test the accuracy of the models.
 
-	
-	
-Antecedentes del experimento
-====
+# Cleaning and tidying data
 
-El archivo .zip que nos hemos descargado de la url anterior contiene una carpeta llamada "UCI HAR Dataset" donde se encuentran todos los ficheros necesarios para realizar el proyecto. Para que el código de "run_analysis.R" funcione, debemos tener la carpeta "UCI HAR Dataset", con todo su contenido, en nuestro directorio de trabajo. Por tanto, lo primero que tenemos que hacer es comprobar que dicha carpeta se encuentra en nuestro directorio de trabajo.
+The project has five points to resolve:
 
-La carpeta "UCI HAR Dataset" contiene datos relativos a un experimento en el que 30 personas de entre 19 y 48 años realizaron una serie de actividades (caminar, subir escaleras, bajar escaleras, sentarse, permanecer de pie y tumbarse) llevando un móvil Samsung Galaxy S II en la cintura, que recogía datos relativos a la aceleración y velocidad angular de los participantes mientras realizaban dichas actividades. El objetivo de dicho experimento era intentar predecir la actividad que estaba realizando cada individuo a partir de los datos recogidos por el smartphone. Por esta razón dividieron los datos en dos grupos, uno con el 70% de los participantes, que utilizaron para entrenar los modelos predictivos, y otro con el 30% restante, que sirvió para testar la eficacia de los modelos.
+1. Merge the training and the test sets to create one data set.
+2. Extract only the measurements on the mean and standard deviation for each measurement.
+3. Use descriptive activity names to name the activities in the data set
+4. Appropriately label the data set with descriptive variable names. 
+5. From the data set in step 4, create a second, independent tidy data set with the average of each variable for each activity and each subject.
 
+I have divided the whole process to reach point 5 in a set of consecutive steps. Here you can read the explication of steps and *Run_analysis.R* script give you the code to run each one of them.
 
-Limpiando y ordenando los datos
-====
 
-Dentro de la carpeta "UCI HAR Dataset" se encuentran los siguientes elementos:
+### 1. Merging the training and the test sets to create one data set.
+##### Step 1
+File *README.txt* shows that training and test data sets are placed into the *train* and *test* folders, and they are named *X_train.txt* and *X_test.txt*. Open them and create `data.frame` objects called *trainset* and *testset*. The object *trainset* has 7,352 rows and 561 columns. The object *testset* has 2,947 rows and 561 columns. The columns of both data frames do not have descriptive names in the header, only the letter V followed by the column number.
 
-* "train": directorio que contiene ficheros con los datos de los participantes asignados al grupo de entrenamiento
-* "test": directorio que contiene ficheros con los datos de los participantes asignados al grupo de test
-* "activity_labels.txt": fichero con 6 filas y 2 columnas. Cada fila se corresponde con una actividad. La primera columna contiene dígitos, del 1 al 6. La segunda columna contiene las etiquetas de cada actividad.
-* "features.txt": fichero con 561 filas y 2 columna. Cada fila se corresponde con el nombre de una variable. La primera columna contiene dígitos, del 1 al 561. La segunda columna contiene las etiquetas de cada variable.
+##### Step 2
+Open the file *features.txt*, which contains the variable's names of *trainset* and *testset* data frames, and create a `data.frame` object called *varnames*, which has 561 rows and 2 columns. The rows correspond to the number of columns that have *trainset* and *testset* objects. The first column contains a sequence of numbers from 1 to 561, and the second the descriptive texts of all 561 variables.
 
-La estructura de los datos de las carpetas train y test es la misma: hay una carpeta llamada "Inertial Signals" que contiene las mediciones recogidas a través de los sensores del smartphone, un fichero que contiene el identificador del participante, otro con el identificador de la actividad y un último fichero con una serie de variables obtenidas a partir de las mediciones que se encuentran en la carpeta "Inertial Signals". Vamos a examinarlos más detenidamente:
+##### Step 3
+Use data in the second column of the object *varnames* to name the columns of objects *trainset* and *testset*. To make this operation assume that the order of the rows of *varnames* match with the order of the columns of *trainset* and *testset* so that the text in row 1 is the name that goes in column 1, the text of row 2 is the name that goes in column 2, etc.
 
-#### Participantes
-Leemos los ficheros "subject_test.txt" y "subject_train", y creamos los objetos "subject_test" y "subject_train", que tienen 2,947 filas y 7,352 filas, respectivamente. Ambos ficheros tienen una sola columna, a la que vamos a llamar "subject". Esta variable es de tipo integer, y contiene digitos que identifican al participante. Si contamos los identificadores únicos de los participantes encontramos que en el grupo de test hay 9 participantes (30% de 30) y en el de entrenamiento 21 (70% de 30).
+Now let's add a column that identifies the subject and another to identify the activities that they performed.
 
-#### Actividades
-Leemos los ficheros "y_test.txt" y "y_train.txt", y creamos los objetos "activity_test" y "activity_train", que tienen 2,947 filas y 7,352 filas, respectivamente. También tienen una sola columna, a la que vamos a llamar "activity". Es una variable de tipo integer, e identifica la actividad que realiza cada participante. Contando los identificadores únicos de cada actividad se observa que en ambos grupos se han realizado las 6 actividades.
+##### Step 4
+Into *train* and *test* folders you’ll find *subject_train.txt* and *subject_test.txt* files. Open them and create `data.frame` objects called *subject_train* and *subject_test*, with 7,352 rows and 2,947 rows respectively. Both have a single column, with not descriptive name, that show the id of the participant. We then label the column of both objects as *subject*.
 
-#### Vector de características
-Leemos los ficheros "X_test.txt" y "X_train.txt", y creamos los objetos "features_test" y "features_train", que tienen 2,947 filas y 7,352 filas, respectivamente. El número de columnas de ambos objetos es de 561. Estas columnas son variables que se han obtenido aplicando una serie de transformaciones a los datos de los ficheros contenidos en la carpeta "Inertial Signals". En el fichero "features.txt", que hemos visto anteriormente, están los 561 nombres de estas variables. Utilizamos dicho fichero para darle nombre a estas 561 columnas.
+##### Step 5
+Open *y_train.txt* and *y_test.txt* files and create `data.frame` objects called *activity_train* and *activity_test*, which also have 7,352 rows and 2,947 rows respectively, and a single column without descriptive name that indicates the id of the activity. We then label the column of both objects as *activity*.
 
-#### Inertial Signals
-En esta carpeta hay datos relativos a la aceleración total, la aceleración estimada del cuerpo y la velocidad angular de los participantes. Como estas mediciones se realizaron en un espacio tridimensional, se recogieron datos de los ejes X, Y y Z para cada una de ellas. Hay, por tanto, 9 ficheros.
+##### Step 6
+The object *trainset* has 7,352 rows with data about 561 variables, but we do not know to whom they belong. To identify these rows we have to add *subject_train*'s *subject* column and *activity_train*'s *activity* column. As we have not an id to link rows of these three data frames, let's assume that they are sorted so that the rows of data frames match each other. We perform the operation with `cbind` function, and get a data frame with 7,352 rows and 563 columns called *traindb*.
 
-Los ficheros contenidos en la carpeta "Inertial Signals" del grupo "test", tienen 2,947 filas y 128 columnas, mientras que los del grupo "train" tienen 7,352 filas y 128 columnas. Las filas coinciden con las que tienen los ficheros de participantes y actividades respectivos. Las columnas, según la información del fichero "README.txt", se refieren a la cantidad de mediciones realizadas en una ventana de tiempo de 2.56 segundos. Esto significa que cada 2.56 segundos se obtiene una línea con 128 medidas de cada una de las tres magnitudes (aceleracion total, aceleración del cuerpo y velocidad angular) y para cada uno de los tres ejes. No hay ningún fichero con los nombres para estas 128 variables. 
+Do the same with the data frames *subject_test*, *activity_test* and *testset*, and obtain the `data.frame` object *testdb*.
 
-Hasta ahora hemos visto que los ficheros del grupo test tienen 2,947 filas, mientras que los del grupo de entrenamiento tienen 7,352 filas. Cada una de esas filas se corresponde con las mediciones recogidas en 2.56 segundos a un participante concreto realizando una actividad concreta.
+##### Step 7
+Now we have two data frames with different number of rows, but the same number of columns, and we want to join them so the columns match each other. The goal is to obtain a data frame with the sum of the rows of both objects. We use `rbind` function to do this, and finally we obtain a `data.frame` object, with 10,299 rows and 563 columns, called *totaldb*.
 
 
-## 1. Merges the training and the test sets to create one data set.
-El primer objetivo del proyecto es obtener un objeto con los datos del grupo de entrenamiento y del grupo test, es decir, añadir las filas de uno de los grupos a las del otro, haciendo que coincidan las columnas.
+### 2. Extracting only the measurements on the mean and standard deviation for each measurement.
+In the *features_info.txt* file we can read the following text:
 
-Antes de hacer esto vamos a identificar cada fila de los objetos "features_test" y "features_train" con el participante correspondiente y la actividad que estaba realizando en esa ventana de tiempo. Como no hay ningún identificador común entre los objetos "subject_test", "activity_test" y "features_test", suponemos que están ordenados de igual forma, por lo que únicamente tenemos que unir las columnas, manteniendo el orden de las filas, y creamos el objeto "test". Hacemos lo mismo con "subject_train", "activity_train" y "features_train", y creamos el objeto "train".
+> The set of variables That Were Estimated from these signals are:
 
-Ahora tenemos un objeto "testdb" con 2,947 filas y 563 columnas, y un objeto "traindb" con 7,352 filas y 563 columnas. Vamos a unir las filas de ambos objetos para obtener el objeto "totaldb", con 10,299 filas y 563 columnas.
+> Mean (): Mean value
+std (): Standard deviation
+mad (): Median absolute deviation
+max (): Largest value in array
+min (): Smallest value in array
+sma (): Signal magnitude area
+energy (): Energy measure. Sum of the squares divided by the number of values.
+iqr (): interquartile range
+entropy (): Signal entropy
+arCoeff (): With Burg order autoregression coefficients equal to 4
+correlation (): Between two signals correlation coefficient
+maxInds (): index of the largest magnitude frequency component With
+meanFreq (): Weighted average of the frequency components to Obtain a mean frequency
+skewness (): skewness of the frequency domain signal
+kurtosis (): kurtosis of the frequency domain signal
+bandsEnergy (): Energy of a frequency interval Within the 64 bins of the FFT of each window.
+angle (): Angle Between to vectors.
 
-No vamos a unir los datos que se incluyen en las carpetas "Inertial Signals", porque para el proyecto sólo se van a utilizar los datos del vector de características.
+##### Step 8
+Count variable labels with text string *mean()* or *std()*. There are 33 of each of them. For each variable with text string *mean()* there is another identical but with text string *std()*. This makes sense, because when you are analysing a variable, you frequently need a measure of central tendency, like the mean, and other measures of dispersion, such as the standard deviation.
 
+We also see that for certain columns is calculated something called *meanFreq()*. This is a kind of weighted average. These estimates are not accompanied by a measure of dispersion, such a standard deviation. These do not seem to be some kind of measurement of central tendency like variables with text string *mean()*, so we are not going to select them.
 
-## 2. Extracts only the measurements on the mean and standard deviation for each measurement. 
-El siguiente objetivo del proyecto es seleccionar unicamente aquellas variables que recogen la media o la desviación típica de las diferentes señales obtenidas a partir de los sensores del smartphone. Echando un vistazo al fichero "features_info.txt", observamos lo siguiente:
+Therefore, we only keep 66 variables with texts *mean()* and *std()*, and get a `data.frame` object, with 10,299 rows and 68 columns, which we call *selectdb*.
 
-The set of variables that were estimated from these signals are: 
 
-mean(): Mean value
-std(): Standard deviation
-mad(): Median absolute deviation 
-max(): Largest value in array
-min(): Smallest value in array
-sma(): Signal magnitude area
-energy(): Energy measure. Sum of the squares divided by the number of values. 
-iqr(): Interquartile range 
-entropy(): Signal entropy
-arCoeff(): Autorregresion coefficients with Burg order equal to 4
-correlation(): correlation coefficient between two signals
-maxInds(): index of the frequency component with largest magnitude
-meanFreq(): Weighted average of the frequency components to obtain a mean frequency
-skewness(): skewness of the frequency domain signal 
-kurtosis(): kurtosis of the frequency domain signal 
-bandsEnergy(): Energy of a frequency interval within the 64 bins of the FFT of each window.
-angle(): Angle between to vectors.
+### 3. Using activity descriptive names to name the activities in the data set
+##### Step 9
+Open the file *activity_labels.txt*, using the `stringsAsFactors = false` to ensure that texts are not interpreted as a factor, and create a ` data.frame` object called *activity_labels* which has 6 rows and 2 columns, with no labels. The first column, V1, contains a sequence of numbers from 1 to 6, which correspond to each of the six activities that the participants performed. The second column contains the text description of each one of them.
 
-Por tanto vamos a seleccionar aquellas columnas en cuyo nombre se encuentren los textos "mean()" o "sd()". Hay 33 variables con el texto "mean()" y otras 33 variables con el texto "std()".
+##### Step 10
+We use this data frame as a template to replace the levels of *activity* in the data frame *selectdb* by the text description of the activity.
 
-Vemos también que para determinadas columnas se ha calculado también algo llamado "meanFreq()". Se trata de una especie de media ponderada. Estas estimaciones no tienen aparejada una desviación típica, como sí ocurre con las variables que llevan incluido el texto "mean()" (por cada variable con el texto "mean()" hay otra con el texto "sd()"). Por tanto, vamos a eliminar las 13 columnas que contienen el texto "meanFreq()".
 
-Finalmente obtenemos un data frame llamado "selectdb", con 10,299 filas y 68 columnas. 
+### 4. Appropriately labeling the data set with descriptive variable names.
+##### Step 11
+Clean the labels of variables, removing the parentheses and replacing hyphens and commas by dots.
 
 
-## 3. Uses descriptive activity names to name the activities in the data set
-Para sustituir los códigos de cada actividad por un texto que indique la descripción de la actividad, vamos a abrir primero el archivo "activity_labels.txt", asegurándonos de que los textos no son interpretados como una variable factor, porque nos puede dar problemas a la hora de sustituir. Vamos a utilizar el data frame que acabamos de generar con las actividades del experimento, para sustituir cada código de la variable "activity" contenida en el data frame "selectdb", por el texto de la actividad correspondiente.
+### 5. From the data set in step 4 creating a second, independent tidy data set with the average of each variable for each activity and each subject.
+##### Step 12
+Before starting this task, we will get a two way table with *activity* and *subject* variables, from the *selectdb* data frame. The resulting table shows how many lines of data were collected for each participant in each of the activities performed. Thus, for participant 1 and activity "LAYING", 50 rows of data were collected, for participant 2 48 rows were collected, for participant 3 62 rows were collected, etc. This meaning that the participant 1 has, for the "LAYING" activity, 50 values in each of the 66 *mean()* or *std()* variables.
 
+Our goal is that the participant 1, on "LAYING" activity, has the average value of those 50 values in each of the 66 variables. And the same for the other participants and activities.
 
-## 4. Appropriately labels the data set with descriptive variable names. 
-Limpiamos un poco los nombres de las columnas, eliminando los paréntesis y sustituyendo los guiones y las comas por puntos.
+##### Step 13
+As 30 people participated in the experiment, and each carried out six activities, we should get a data frame with 180 rows, one for each person and activity combination. To do this we use the `aggregate` function and create a new `data.frame` object called *tidydb*.
 
+##### Step 14
+Finally, given that the data contained in the new data frame are averages calculated from the original data, we will rename all variable names by adding *Avg* at the end of each label.
 
-## 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
-Antes de comenzar esta tarea, vamos a examinar más a fondo la base de datos "selectdb". Para ellos vamos a obtener una tabla cruzando las personas que han participado en el experimento (30) con las actividades que han realizado (6).
+---
 
-La tabla resultante indica cuántas líneas del data base selectdb tiene una persona determinada en una actividad determinada. Así, para la actividad "LAYING", la persona 1 tiene 50 líneas, la persona 2 tiene 48 líneas, la persona 3 tiene 62 líneas, etc. Esto significa que en la actividad "LAYING", la persona 1 tiene 50 valores de cada una de las 66 variables que hemos seleccionado, la persona 2 tiene 48 valores de dichas variables, la persona 3 tiene 62, etc.
+### Appendix: Understanding the relationship between Inertial Signals and 561-feature vector
 
-El objetivo es, por tanto, que cada persona tenga, para cada una de las actividades que ha realizado, el valor promedio de cada una de las 66 variables.
+In this project it was not necessary to use the data contained in the *Inertial Signals* folder, but you should understand its relationship with data files *X_test.txt* and *X_train.txt*.
 
-Por tanto, podríamos calcular a priori las dimensiones de la base de datos que queremos obtener. El número de columnas será el mismo que tiene ahora el data set "selectdb". El número de filas será el del numero de participantes multiplicado por el número de actividades distintas. Esto da un total de 180 filas. Vamos a obtener el data set y a guardarlo.
+Take, for example, how we calculated the values of the first variable of 561-feature vector, *tBodyAcc-mean-X()*, from the files contained in *Inertial Signals* folder.
 
+*tBodyAcc-mean-X()* variable from the *totaldb* data frame has 10,299 rows, that is, 10,299 values. Each of them is the average of all readings of the body acceleration of the participants in the X axis along a sliding windows of 2.56 seconds and 50% overlap (128 readings/windows).
 
+Data of the body acceleration on the X axis are *body_acc_x_train.txt* and *body_acc_x_test.txt* files. We read them and create two `data.frames` objects called *body_acc_x_train* and *body_acc_x_test", which have 7,352 rows and 2,947 rows, respectively. The number of columns of both objects is 128, which correspond to the number of readings that were made in that sliding window of 2.56 seconds. We join both objects, by matching columns, and obtain a `data.frame` object called *body_acc_x*, which have 10,299 rows and 128 columns. Here is the code to run this:
 
+	body_acc_x_test = read.table ("UCI ./ HAR Dataset / test / Inertial Signals / body_acc_x_train.txt")
+	body_acc_x_train = read.table ("UCI ./ HAR Dataset / train / Inertial Signals / body_acc_x_test.txt")
+	body_acc_x = rbind (body_acc_x_train, body_acc_x_test)
+	dim (body_acc_x)
 
+Now we calculate the mean of the rows and create a data frame with these averaged values. Then label the column as *body_acc_x_mean*.
 
-Anexo: Entendiendo la relación entre Inertial Signasl y Vector Features
-====
-En este proyecto no ha sido necesario utilizar los datos contenidos en la carpeta "Inertial Signals", pero es conveniente entender cuál es su relación con los datos de los ficheros "X_test.txt" y "X_train.txt", es decir, con el vector de características. 
+	body_acc_x_mean <- as.data.frame (x = apply (body_acc_x 1, mean))
+	names (body_acc_x_mean) <- "body_acc_x_mean"
 
-Veamos, por ejemplo, cómo se han calculado los valores de la primera variable de este vector: "tBodyAcc-mean-X()".
+Then we normalize these values in the range -1 and 1, and create a column called *body_acc_x_mean_norm* with this values.
 
-La columna "tBodyAcc-mean-X()" del data set "totaldb" muestra 10,299 valores medios de la aceleración del cuerpo de los participantes en el eje X, normalizados en un rango de -1 a 1. Estas 10,299 filas, como hemos visto anteriormente, son las 10,299 ventanas de tiempo de 2.56 segundos que se han muestreado durante la realización del experimento. Esto significa que los 30 participantes estuvieron realizando actividades, mientras el smartphone recogía datos sobre su acelaración y velocidad angular, durante unas 7 horas y 19 minutos. 
+	body_acc_x_mean$body_acc_x_mean_norm = 2 * (body_acc_x_mean [1] - min (body_acc_x_mean [1])) / (max (body_acc_x_mean[1]) - min(body_acc_x_mean [1])) - 1
 
-Los datos de aceleración del cuerpo en el eje X están en los ficheros "body_acc_x_test.txt" y "body_acc_x_train.txt". Los leemos y creamos los objetos "body_acc_x_test" y "body_acc_x_train", que tienen 2,947 filas y 7,352 filas, respectivamente. El número de columnas de ambos objetos es de 128, que se corresponden con el numero de mediciones que se realizaban en esa ventana de tiempo de 2,56 segundos. Unimos, en función de las columnas, ambos objetos y obtenemos un data set llamado "body_acc_x", con 10,299 filas y 128 columnas.
+The data of *body_acc_x_mean_norm* should match with the data in *tBodyAcc-mean-X()* from the the data frame *totaldb*. We add that column to *body_acc_x* and compare them:
 
-	body_acc_x_test = read.table("./UCI HAR Dataset/test/Inertial Signals/body_acc_x_test.txt")
-	body_acc_x_train = read.table("./UCI HAR Dataset/train/Inertial Signals/body_acc_x_train.txt")
-	body_acc_x = rbind(body_acc_x_test, body_acc_x_train)
-	dim(body_acc_x)
+	body_acc_x_mean$body_acc_x_mean_norm2 = totaldb[3]
 
-Ahora calculamos las medias de las filas. Creamos un data frame con estos valores medios, y le damos un nombre a la variable.
+The values match each one, although there is some rounding issues.
 
-	body_acc_x_mean <- as.data.frame(x = apply(body_acc_x, 1, mean))
-	names(body_acc_x_mean) <- "body_acc_x_mean"
+As seen above, the variable *tBodyAcc-mean-X()* is obtained by calculating the mean of the 128 body acceleration values in the X axis and then standardizing them. The same is done with the data of Y and Z axes, and so with data related to gravity and the angular velocity. In addition to the averages, another estimations like standard deviations, medians, maximum values, minimum values, etc, are calculated. In some cases, instead of calculating these statistics directly on the variables *body_acc*, *body_gyro* and *total_acc*, some transformation on them are performed, such as calculating their derivatives over time, the Fast Fourier Transform (FFT) or the Euclidean Norm.
 
-Normalizamos dichos valores, en un rango de -1 y 1, y los añadimos a una nueva variable.
 
-	body_acc_x_mean$body_acc_x_mean_norm = 2*(body_acc_x_mean[,1] - min(body_acc_x_mean[,1]))/(max(body_acc_x_mean[,1]) - min(body_acc_x_mean[,1])) - 1
 
-Los datos de esta columna que acabamos de añadir, "body_acc_x_mean_norm", deberían de coincidir con los datos de la columna "tBodyAcc-mean-X()" del data set total. Vamos a añadirla, y comparamos.
 
-	body_acc_x_mean$body_acc_x_mean_norm2 = total[,3]
 
-Se observa que los valores coinciden.
 
-Como se ha visto, la variable tBodyAcc-mean-X() se obtiene calculando las medias de los 128 valores de aceleración del cuerpo en el eje X, y luego normalizándolas. Esto mismo se hace con los datos de los ejes Y y Z, y también con los datos relativos a la gravedad y la velocidad angular. Además de las medias se calculan desviaciones típicas, medianas, valores máximos, valores mínimos, etc. En algunos casos, en vez de calcular estos estadísticos sobre los valores de los ficheros body_acc, body_gyro y total_acc, se realiza algún tipo de transformación sobre ellos, como calcular sus derivadas en función del tiempo, la Fas Fourier Transform (FFT) o la Euclidean Norm.
+
+
+
+
+
+
+
+
+
+
+
+
 
