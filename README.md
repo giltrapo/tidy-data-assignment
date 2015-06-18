@@ -79,23 +79,23 @@ In the *features_info.txt* file we can read the following text:
 
 > The set of variables That Were Estimated from these signals are:
 
-> Mean (): Mean value
-std (): Standard deviation
-mad (): Median absolute deviation
-max (): Largest value in array
-min (): Smallest value in array
-sma (): Signal magnitude area
-energy (): Energy measure. Sum of the squares divided by the number of values.
-iqr (): interquartile range
-entropy (): Signal entropy
-arCoeff (): With Burg order autoregression coefficients equal to 4
-correlation (): Between two signals correlation coefficient
-maxInds (): index of the largest magnitude frequency component With
-meanFreq (): Weighted average of the frequency components to Obtain a mean frequency
-skewness (): skewness of the frequency domain signal
-kurtosis (): kurtosis of the frequency domain signal
-bandsEnergy (): Energy of a frequency interval Within the 64 bins of the FFT of each window.
-angle (): Angle Between to vectors.
+> Mean (): Mean value  
+std (): Standard deviation  
+mad (): Median absolute deviation  
+max (): Largest value in array  
+min (): Smallest value in array  
+sma (): Signal magnitude area  
+energy (): Energy measure. Sum of the squares divided by the number of values.  
+iqr (): interquartile range  
+entropy (): Signal entropy  
+arCoeff (): With Burg order autoregression coefficients equal to 4  
+correlation (): Between two signals correlation coefficient  
+maxInds (): index of the largest magnitude frequency component With  
+meanFreq (): Weighted average of the frequency components to Obtain a mean frequency  
+skewness (): skewness of the frequency domain signal  
+kurtosis (): kurtosis of the frequency domain signal  
+bandsEnergy (): Energy of a frequency interval Within the 64 bins of the FFT of each window.  
+angle (): Angle Between to vectors.  
 
 ##### Step 8
 Count variable labels with text string *mean()* or *std()*. There are 33 of each of them. For each variable with text string *mean()* there is another identical but with text string *std()*. This makes sense, because when you are analysing a variable, you frequently need a measure of central tendency, like the mean, and other measures of dispersion, such as the standard deviation.
